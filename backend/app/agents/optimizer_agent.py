@@ -1,7 +1,7 @@
-import anthropic
+from groq import Groq
 from app.config import settings
 
-client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+client = Groq(api_key=settings.GROQ_API_KEY)
 
 OPTIMIZER_SYSTEM_PROMPT = """You are an expert prompt engineer.
 You will be given a system prompt that is underperforming and a detailed failure analysis explaining exactly what is weak.
@@ -15,12 +15,12 @@ Failure analysis: {failure_analysis}
 
 Rewrite the system prompt to fix these issues."""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+    message = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
         max_tokens=1024,
-        system=OPTIMIZER_SYSTEM_PROMPT,
         messages=[
+            {"role": "system", "content": OPTIMIZER_SYSTEM_PROMPT},
             {"role": "user", "content": user_message}
         ]
     )
-    return message.content[0].text
+    return message.choices[0].message.content

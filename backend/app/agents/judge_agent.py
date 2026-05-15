@@ -1,12 +1,12 @@
-import anthropic
-import json
+from groq import Groq
 from app.config import settings
+import json
 
-client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+client = Groq(api_key=settings.GROQ_API_KEY)
 
-JUDGE_SYSTEM_PROMPT = """You are an expert prompt evaluator. 
-You will be given a task type, a system prompt, a test input, and the output that prompt produced.
-Score the output and return ONLY a JSON object with no extra text, no markdown, no backticks.
+JUDGE_SYSTEM_PROMPT = """You are an expert prompt evaluator.
+You will be given a task type, a system prompt, a test input, and the output it produced.
+Score the output and return ONLY a JSON object. No markdown, no backticks, no extra text whatsoever.
 
 Return exactly this structure:
 {
@@ -20,7 +20,7 @@ Return exactly this structure:
   "failure_analysis": "specific explanation of what was weak and why"
 }
 
-All scores are between 0.0 and 1.0. Be harsh and specific in failure_analysis."""
+All scores between 0.0 and 1.0. Be harsh and specific."""
 
 def run_judge_agent(task_type: str, system_prompt: str, test_input: str, output: str) -> dict:
     user_message = f"""Task type: {task_type}
@@ -30,14 +30,14 @@ Output produced: {output}
 
 Score this output."""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+    message = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
         max_tokens=1024,
-        system=JUDGE_SYSTEM_PROMPT,
         messages=[
+            {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
             {"role": "user", "content": user_message}
         ]
     )
-    
-    raw = message.content[0].text
+
+    raw = message.choices[0].message.content
     return json.loads(raw)

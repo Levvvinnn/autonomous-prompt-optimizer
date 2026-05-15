@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 langgraph
-anthropic
+groq
 sqlalchemy
 psycopg2-binary
 python-dotenv
