@@ -6,6 +6,7 @@ if sys.platform == "win32":
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.graph.workflow import optimization_graph
 
 app = FastAPI()
 
@@ -50,4 +51,25 @@ def test_agents():
         "task_output": output,
         "judgment": judgment,
         "optimized_prompt": optimized
+    }
+
+
+@app.get("/test-loop")
+def test_loop():
+    result = optimization_graph.invoke({
+        "task_type": "summarization",
+        "test_input": "The mitochondria is the powerhouse of the cell. It produces ATP through cellular respiration. This process occurs in the inner membrane of the mitochondria.",
+        "current_prompt": "Summarize the following text.",
+        "current_output": "",
+        "current_score": 0.0,
+        "failure_analysis": "",
+        "iteration": 1,
+        "history": [],
+        "should_stop": False
+    })
+    return {
+        "final_prompt": result["current_prompt"],
+        "final_score": result["current_score"],
+        "total_iterations": result["iteration"],
+        "history": result["history"]
     }
