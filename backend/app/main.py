@@ -6,7 +6,10 @@ if sys.platform == "win32":
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.graph.workflow import optimization_graph
+from app.database import engine, Base
+from app.api.routes import router
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -17,6 +20,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(router)
+
 
 @app.get("/")
 def root():
