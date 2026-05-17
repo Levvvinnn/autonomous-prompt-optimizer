@@ -20,12 +20,13 @@ def optimize(request: OptimizeRequest, db: Session = Depends(get_db)):
         "history": [],
         "should_stop": False
     })
+    best = max(result["history"], key=lambda x: x["score"])
 
     session = OptimizationSession(
         task_type=request.task_type,
         initial_prompt=request.initial_prompt,
-        final_prompt=result["current_prompt"],
-        final_score=result["current_score"],
+        final_prompt=best["prompt"],
+        final_score=best["score"],
         total_iterations=result["iteration"]
     )
     db.add(session)
