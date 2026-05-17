@@ -51,8 +51,8 @@ def optimize(request: OptimizeRequest, db: Session = Depends(get_db)):
 
     return OptimizeResponse(
         session_id=session.id,
-        final_prompt=result["current_prompt"],
-        final_score=result["current_score"],
+        final_prompt=best["prompt"],
+        final_score=best["score"],
         total_iterations=result["iteration"],
         history=result["history"]
     )
