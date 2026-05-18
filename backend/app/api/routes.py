@@ -7,6 +7,7 @@ from app.graph.workflow import optimization_graph
 
 router = APIRouter()
 
+
 @router.post("/optimize", response_model=OptimizeResponse)
 def optimize(request: OptimizeRequest, db: Session = Depends(get_db)):
     result = optimization_graph.invoke({
