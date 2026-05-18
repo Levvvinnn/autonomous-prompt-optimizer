@@ -48,7 +48,7 @@ def optimize(request: OptimizeRequest, db: Session = Depends(get_db)):
         )
         db.add(version)
     db.commit()
-
+ 
     return OptimizeResponse(
         session_id=session.id,
         final_prompt=best["prompt"],
