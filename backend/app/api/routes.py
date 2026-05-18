@@ -14,7 +14,7 @@ def optimize(request: OptimizeRequest, db: Session = Depends(get_db)):
         "test_input": request.test_input,
         "current_prompt": request.initial_prompt,
         "current_output": "",
-        "current_score": 0.0,
+        "current_score": 0.0, 
         "failure_analysis": "",
         "iteration": 1,
         "history": [],
