@@ -31,7 +31,7 @@ def optimize(request: OptimizeRequest, db: Session = Depends(get_db)):
     )
     db.add(session)
     db.commit()
-    db.refresh(session)
+    db.refresh(session)  
 
     for entry in result["history"]:
         version = PromptVersion(
