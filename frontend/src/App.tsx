@@ -49,6 +49,7 @@ export default function App() {
           test_input: testInput,
         }),
       })
+      if(!res.ok)throw new Error(await res.text())
       const data = await res.json()
       setResult(data)
     } catch (e) {
