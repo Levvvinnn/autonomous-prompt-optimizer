@@ -54,7 +54,7 @@ export default function App() {
       const data = await res.json()
       setResult(data)
     } catch (e) {
-      setError("Something went wrong. Make sure your backend is running.")
+      setError("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -66,7 +66,7 @@ export default function App() {
         <div className="header-inner">
           <span className="logo">⟳</span>
           <h1>Prompt Optimizer</h1>
-          <p className="tagline">autonomous prompt improvement via multi-agent feedback loops</p>
+          <p className="tagline">Autonomous prompt improvement via multi-agent feedback loops</p>
         </div>
       </header>
 
@@ -78,7 +78,7 @@ export default function App() {
         {loading && (
           <div className="loading-state">
             <div className="spinner" />
-            <p>Agents running — this takes 20–40 seconds...</p>
+            <p>Agents running..Please wait..</p>
           </div>
         )}
 
@@ -87,17 +87,17 @@ export default function App() {
             <div className="result-summary">
               <div className="stat">
                 <span className="stat-value">{result.final_score.toFixed(2)}</span>
-                <span className="stat-label">final score</span>
+                <span className="stat-label">Final score</span>
               </div>
               <div className="stat">
                 <span className="stat-value">{result.total_iterations}</span>
-                <span className="stat-label">iterations</span>
+                <span className="stat-label">Iterations</span>
               </div>
               <div className="stat">
                 <span className="stat-value">
                   {result.history[0]?.score.toFixed(2)}
                 </span>
-                <span className="stat-label">initial score</span>
+                <span className="stat-label">Initial score</span>
               </div>
             </div>
 
