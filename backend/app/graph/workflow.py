@@ -31,7 +31,7 @@ def judge_node(state: OptimizationState) -> OptimizationState:
         output=state["current_output"]
     )
     
-    history_entry={
+    history_entry= {
         "iteration": state["iteration"],
         "prompt": state["current_prompt"],
         "output": state["current_output"],
