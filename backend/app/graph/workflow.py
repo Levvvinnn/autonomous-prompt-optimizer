@@ -67,7 +67,7 @@ def should_continue(state: OptimizationState) -> str:
     if len(state["history"]) > 1:
         prev_score = state["history"][-2]["score"]
         improvement = state["current_score"] - prev_score
-        if improvement < settings.MIN_IMPROVEMENT_THRESHOLD:
+        if improvement<settings.MIN_IMPROVEMENT_THRESHOLD:
             return "end"
     return "continue"
 
