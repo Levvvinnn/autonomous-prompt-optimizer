@@ -48,7 +48,7 @@ def judge_node(state: OptimizationState) -> OptimizationState:
     }
 
 def optimizer_node(state: OptimizationState) -> OptimizationState:
-    new_prompt = run_optimizer_agent(
+    new_prompt=run_optimizer_agent(
         current_prompt=state["current_prompt"],
         failure_analysis=state["failure_analysis"],
         task_type=state["task_type"]
