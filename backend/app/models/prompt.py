@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
 
@@ -12,12 +13,17 @@ class OptimizationSession(Base):
     final_score = Column(Float)
     total_iterations = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow)
+    versions = relationship(
+        "PromptVersion",
+        back_populates="session",
+        cascade="all, delete-orphan",
+    )
 
 class PromptVersion(Base):
     __tablename__ = "prompt_versions"
 
     id = Column(Integer, primary_key=True)
-    session_id = Column(Integer)
+    session_id = Column(Integer, ForeignKey("optimization_sessions.id"), nullable=False)
     iteration = Column(Integer)
     prompt_text = Column(Text)
     output_text = Column(Text)
@@ -28,3 +34,4 @@ class PromptVersion(Base):
     completeness = Column(Float)
     conciseness = Column(Float)
     created_at = Column(DateTime, default=datetime.utcnow)
+    session = relationship("OptimizationSession", back_populates="versions")

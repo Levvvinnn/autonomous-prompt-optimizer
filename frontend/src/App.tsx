@@ -53,7 +53,7 @@ export default function App() {
       if(!res.ok)throw new Error(await res.text())
       const data = await res.json()
       setResult(data)
-    } catch (e) {
+    } catch {
       setError("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
