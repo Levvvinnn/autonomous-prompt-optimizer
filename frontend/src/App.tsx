@@ -41,9 +41,13 @@ export default function App() {
     setResult(null)
     try {
       const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
+      const API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN
       const res = await fetch(`${API_URL}/optimize`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(API_AUTH_TOKEN ? { "X-API-Key": API_AUTH_TOKEN } : {}),
+        },
         body: JSON.stringify({
           task_type: taskType,
           initial_prompt: initialPrompt,
