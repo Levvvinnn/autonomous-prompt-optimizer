@@ -2,3 +2,7 @@
 __pycache__/
 *.pyc
 .venv/
+node_modules/
+dist/
+.pytest_cache/
+.vite/

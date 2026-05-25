@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: prompt_optimizer
+      POSTGRES_USER: prompt_optimizer
+      POSTGRES_PASSWORD: prompt_optimizer
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prompt_optimizer -d prompt_optimizer"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      DATABASE_URL: postgresql://prompt_optimizer:prompt_optimizer@db:5432/prompt_optimizer
+      API_AUTH_TOKEN: ${API_AUTH_TOKEN:-dev-token}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-10}
+      RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
+      MAX_ITERATIONS: ${MAX_ITERATIONS:-7}
+      MIN_IMPROVEMENT_THRESHOLD: ${MIN_IMPROVEMENT_THRESHOLD:-0.05}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_API_AUTH_TOKEN: ${API_AUTH_TOKEN:-dev-token}
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:
