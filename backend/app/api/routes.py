@@ -5,8 +5,9 @@ from app.schemas.prompt import OptimizeRequest, OptimizeResponse
 from app.models.prompt import OptimizationSession, PromptVersion
 from app.graph.workflow import optimization_graph
 from app.auth import require_api_key
+from app.rate_limit import rate_limit
 
-router = APIRouter(dependencies=[Depends(require_api_key)])
+router = APIRouter(dependencies=[Depends(require_api_key), Depends(rate_limit)])
 
 
 def validate_history(result: dict) -> list[dict]:
