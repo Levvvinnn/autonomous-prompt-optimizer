@@ -44,7 +44,7 @@ def rate_limit(request: Request) -> None:
             retry_after = max(1, int(window - (now - timestamps[0])))
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded. Please try later.",
+                detail="Rate limit exceeded. Please try again later.",
                 headers={"Retry-After": str(retry_after)},
             )
 
