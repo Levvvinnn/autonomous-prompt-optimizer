@@ -26,10 +26,27 @@ interface OptimizeResponse {
   history: HistoryEntry[]
 }
 
+interface OptimizeJobResponse {
+  job_id: string
+  status: string
+}
+
+interface JobStatusResponse {
+  job_id: string
+  status: string
+  result: OptimizeResponse | null
+  error: string | null
+}
+
+const POLL_INTERVAL_MS = 2000
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 export default function App() {
   const [result, setResult] = useState<OptimizeResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [statusMessage, setStatusMessage] = useState("")
 
   const handleOptimize = async (
     taskType: string,
@@ -39,26 +56,56 @@ export default function App() {
     setLoading(true)
     setError("")
     setResult(null)
+    setStatusMessage("Starting optimization job...")
     try {
       const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
       const API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+
+      if (API_AUTH_TOKEN) {
+        headers["X-API-Key"] = API_AUTH_TOKEN
+      }
+
       const res = await fetch(`${API_URL}/optimize`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(API_AUTH_TOKEN ? { "X-API-Key": API_AUTH_TOKEN } : {}),
-        },
+        headers,
         body: JSON.stringify({
           task_type: taskType,
           initial_prompt: initialPrompt,
           test_input: testInput,
         }),
       })
-      if(!res.ok)throw new Error(await res.text())
-      const data = await res.json()
-      setResult(data)
-    } catch {
-      setError("Something went wrong. Please try again.")
+      if (!res.ok) throw new Error(await res.text())
+
+      const job: OptimizeJobResponse = await res.json()
+      setStatusMessage("Job queued. Waiting for agents...")
+
+      while (true) {
+        await sleep(POLL_INTERVAL_MS)
+        const jobRes = await fetch(`${API_URL}/jobs/${job.job_id}`, { headers })
+        if (!jobRes.ok) throw new Error(await jobRes.text())
+
+        const jobStatus: JobStatusResponse = await jobRes.json()
+        if (jobStatus.status === "completed" && jobStatus.result) {
+          setResult(jobStatus.result)
+          setStatusMessage("")
+          return
+        }
+
+        if (jobStatus.status === "failed") {
+          throw new Error(jobStatus.error ?? "Optimization job failed.")
+        }
+
+        setStatusMessage(
+          jobStatus.status === "running"
+            ? "Agents running. Checking for results..."
+            : "Job queued. Waiting for agents..."
+        )
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -82,7 +129,7 @@ export default function App() {
         {loading && (
           <div className="loading-state">
             <div className="spinner" />
-            <p>Agents running..Please wait..</p>
+            <p>{statusMessage || "Agents running. Please wait..."}</p>
           </div>
         )}
 

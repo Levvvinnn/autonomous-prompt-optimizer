@@ -18,3 +18,15 @@ class OptimizeResponse(BaseModel):
     final_score: float
     total_iterations: int
     history: list
+
+class OptimizeJobResponse(BaseModel):
+    job_id: str
+    status: str
+
+class JobStatusResponse(BaseModel):
+    job_id: str
+    status: str
+    result: OptimizeResponse | None = None
+    error: str | None = None
+    created_at: str
+    updated_at: str
