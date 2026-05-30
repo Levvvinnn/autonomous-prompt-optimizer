@@ -38,10 +38,6 @@ interface JobStatusResponse {
   error: string | null
 }
 
-const POLL_INTERVAL_MS = 2000
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
 export default function App() {
   const [result, setResult] = useState<OptimizeResponse | null>(null)
   const [loading, setLoading] = useState(false)
@@ -82,28 +78,49 @@ export default function App() {
       const job: OptimizeJobResponse = await res.json()
       setStatusMessage("Job queued. Waiting for agents...")
 
+      const eventsRes = await fetch(`${API_URL}/jobs/${job.job_id}/events`, { headers })
+      if (!eventsRes.ok) throw new Error(await eventsRes.text())
+      if (!eventsRes.body) throw new Error("Streaming is not supported by this browser.")
+
+      const reader = eventsRes.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+
       while (true) {
-        await sleep(POLL_INTERVAL_MS)
-        const jobRes = await fetch(`${API_URL}/jobs/${job.job_id}`, { headers })
-        if (!jobRes.ok) throw new Error(await jobRes.text())
+        const { value, done } = await reader.read()
+        if (done) break
 
-        const jobStatus: JobStatusResponse = await jobRes.json()
-        if (jobStatus.status === "completed" && jobStatus.result) {
-          setResult(jobStatus.result)
-          setStatusMessage("")
-          return
+        buffer += decoder.decode(value, { stream: true })
+        const events = buffer.split("\n\n")
+        buffer = events.pop() ?? ""
+
+        for (const event of events) {
+          const dataLine = event
+            .split("\n")
+            .find(line => line.startsWith("data: "))
+
+          if (!dataLine) continue
+
+          const jobStatus: JobStatusResponse = JSON.parse(dataLine.slice(6))
+          if (jobStatus.status === "completed" && jobStatus.result) {
+            setResult(jobStatus.result)
+            setStatusMessage("")
+            return
+          }
+
+          if (jobStatus.status === "failed") {
+            throw new Error(jobStatus.error ?? "Optimization job failed.")
+          }
+
+          setStatusMessage(
+            jobStatus.status === "running"
+              ? "Agents running. Streaming progress..."
+              : "Job queued. Waiting for agents..."
+          )
         }
-
-        if (jobStatus.status === "failed") {
-          throw new Error(jobStatus.error ?? "Optimization job failed.")
-        }
-
-        setStatusMessage(
-          jobStatus.status === "running"
-            ? "Agents running. Checking for results..."
-            : "Job queued. Waiting for agents..."
-        )
       }
+
+      throw new Error("Optimization stream ended before the job completed.")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
     } finally {

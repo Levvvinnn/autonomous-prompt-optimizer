@@ -1,4 +1,8 @@
+import asyncio
+import json
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.prompt import OptimizeRequest, OptimizeJobResponse, JobStatusResponse
@@ -34,6 +38,38 @@ def get_job(job_id: str):
     if not job:
         raise HTTPException(status_code=404, detail="Optimization job not found.")
     return job
+
+@router.get("/jobs/{job_id}/events")
+async def stream_job_events(job_id: str):
+    if not get_optimization_job(job_id):
+        raise HTTPException(status_code=404, detail="Optimization job not found.")
+
+    async def event_stream():
+        last_updated_at = None
+
+        while True:
+            job = get_optimization_job(job_id)
+            if not job:
+                yield "event: error\ndata: {\"error\":\"Optimization job not found.\"}\n\n"
+                return
+
+            if job["updated_at"] != last_updated_at:
+                last_updated_at = job["updated_at"]
+                yield f"data: {json.dumps(job)}\n\n"
+
+            if job["status"] in {"completed", "failed"}:
+                return
+
+            await asyncio.sleep(1)
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
 
 @router.get("/sessions")
 def get_sessions(db: Session = Depends(get_db)):
