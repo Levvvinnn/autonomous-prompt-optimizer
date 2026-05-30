@@ -85,6 +85,10 @@ def run_optimization(payload: dict) -> OptimizeResponse:
         "failure_analysis": "",
         "iteration": 1,
         "history": [],
+        "best_score": 0.0,
+        "best_iteration": 0,
+        "stale_iterations": 0,
+        "recent_improvements": [],
         "should_stop": False,
     })
     history = validate_history(result)

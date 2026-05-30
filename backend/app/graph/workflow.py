@@ -14,6 +14,10 @@ class OptimizationState(TypedDict):
     failure_analysis: str
     iteration: int
     history: list
+    best_score: float
+    best_iteration: int
+    stale_iterations: int
+    recent_improvements: list[float]
     should_stop: bool
 
 def task_node(state: OptimizationState) -> OptimizationState:
@@ -58,12 +62,20 @@ def judge_node(state: OptimizationState) -> OptimizationState:
         f"Test case #{index}: {judgment['failure_analysis']}"
         for index, judgment in enumerate(judgments, start=1)
     )
+    previous_best_score = state["best_score"]
+    improvement = overall - previous_best_score
+    is_new_best = overall > previous_best_score
+    recent_improvements = (
+        state["recent_improvements"] + [max(0.0, improvement)]
+    )[-settings.IMPROVEMENT_WINDOW:]
     
     history_entry= {
         "iteration": state["iteration"],
         "prompt": state["current_prompt"],
         "output": state["current_output"],
         "score": overall,
+        "improvement": improvement,
+        "best_score": max(previous_best_score, overall),
         "failure_analysis": failure_analysis,
         "scores": scores
     }
@@ -72,7 +84,11 @@ def judge_node(state: OptimizationState) -> OptimizationState:
         **state,
         "current_score": overall,
         "failure_analysis": failure_analysis,
-        "history": state["history"] + [history_entry]
+        "history": state["history"] + [history_entry],
+        "best_score": max(previous_best_score, overall),
+        "best_iteration": state["iteration"] if is_new_best else state["best_iteration"],
+        "stale_iterations": 0 if is_new_best else state["stale_iterations"] + 1,
+        "recent_improvements": recent_improvements,
     }
 
 def optimizer_node(state: OptimizationState) -> OptimizationState:
@@ -88,14 +104,15 @@ def optimizer_node(state: OptimizationState) -> OptimizationState:
     }
 
 def should_continue(state: OptimizationState) -> str:
-    if state["current_score"] >= 0.95:
+    if state["best_score"] >= settings.TARGET_SCORE:
         return "end"
     if state["iteration"] >= settings.MAX_ITERATIONS:
         return "end"
-    if len(state["history"]) > 1:
-        prev_score = state["history"][-2]["score"]
-        improvement = state["current_score"] - prev_score
-        if improvement<settings.MIN_IMPROVEMENT_THRESHOLD:
+    if state["stale_iterations"] >= settings.PATIENCE_ITERATIONS:
+        return "end"
+    if len(state["recent_improvements"]) >= settings.IMPROVEMENT_WINDOW:
+        average_improvement = sum(state["recent_improvements"]) / len(state["recent_improvements"])
+        if average_improvement < settings.MIN_IMPROVEMENT_THRESHOLD:
             return "end"
     return "continue"
 
