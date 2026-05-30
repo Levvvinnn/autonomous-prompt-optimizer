@@ -7,7 +7,7 @@ from app.config import settings
 
 class OptimizationState(TypedDict):
     task_type: str
-    test_input: str
+    test_inputs: list[str]
     current_prompt: str
     current_output: str
     current_score: float
@@ -17,33 +17,61 @@ class OptimizationState(TypedDict):
     should_stop: bool
 
 def task_node(state: OptimizationState) -> OptimizationState:
-    output = run_task_agent(
-        system_prompt=state["current_prompt"],
-        test_input=state["test_input"]
+    outputs = [
+        run_task_agent(
+            system_prompt=state["current_prompt"],
+            test_input=test_input,
+        )
+        for test_input in state["test_inputs"]
+    ]
+    combined_output = "\n\n".join(
+        f"Test case #{index}\n{output}"
+        for index, output in enumerate(outputs, start=1)
     )
-    return {**state, "current_output": output}
+    return {**state, "current_output": combined_output}
 
 def judge_node(state: OptimizationState) -> OptimizationState:
-    judgment = run_judge_agent(
-        task_type=state["task_type"],
-        system_prompt=state["current_prompt"],
-        test_input=state["test_input"],
-        output=state["current_output"]
+    judgments = []
+
+    for index, test_input in enumerate(state["test_inputs"], start=1):
+        marker = f"Test case #{index}\n"
+        output = state["current_output"].split(marker, maxsplit=1)[-1]
+        if index < len(state["test_inputs"]):
+            next_marker = f"\n\nTest case #{index + 1}\n"
+            output = output.split(next_marker, maxsplit=1)[0]
+
+        judgments.append(run_judge_agent(
+            task_type=state["task_type"],
+            system_prompt=state["current_prompt"],
+            test_input=test_input,
+            output=output,
+        ))
+
+    scores = {
+        "correctness": sum(j["scores"]["correctness"] for j in judgments) / len(judgments),
+        "clarity": sum(j["scores"]["clarity"] for j in judgments) / len(judgments),
+        "completeness": sum(j["scores"]["completeness"] for j in judgments) / len(judgments),
+        "conciseness": sum(j["scores"]["conciseness"] for j in judgments) / len(judgments),
+    }
+    overall = sum(j["overall"] for j in judgments) / len(judgments)
+    failure_analysis = "\n\n".join(
+        f"Test case #{index}: {judgment['failure_analysis']}"
+        for index, judgment in enumerate(judgments, start=1)
     )
     
     history_entry= {
         "iteration": state["iteration"],
         "prompt": state["current_prompt"],
         "output": state["current_output"],
-        "score": judgment["overall"],
-        "failure_analysis": judgment["failure_analysis"],
-        "scores": judgment["scores"]
+        "score": overall,
+        "failure_analysis": failure_analysis,
+        "scores": scores
     }
     
     return {
         **state,
-        "current_score": judgment["overall"],
-        "failure_analysis": judgment["failure_analysis"],
+        "current_score": overall,
+        "failure_analysis": failure_analysis,
         "history": state["history"] + [history_entry]
     }
 

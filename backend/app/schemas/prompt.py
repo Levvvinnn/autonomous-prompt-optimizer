@@ -1,9 +1,26 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_validator
 
 class OptimizeRequest(BaseModel):
     task_type: str
     initial_prompt: str
-    test_input: str
+    test_input: str | None = None
+    test_inputs: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def require_test_inputs(self):
+        if self.test_input and not self.test_inputs:
+            self.test_inputs = [self.test_input]
+
+        self.test_inputs = [
+            test_input.strip()
+            for test_input in self.test_inputs
+            if test_input.strip()
+        ]
+
+        if not self.test_inputs:
+            raise ValueError("At least one test input is required.")
+
+        return self
 
 class IterationResponse(BaseModel):
     iteration: int

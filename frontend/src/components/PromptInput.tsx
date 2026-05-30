@@ -1,7 +1,7 @@
 import { useState } from "react"
 
 interface Props {
-  onSubmit: (taskType: string, initialPrompt: string, testInput: string) => void
+  onSubmit: (taskType: string, initialPrompt: string, testInputs: string[]) => void
   loading: boolean
 }
 
@@ -12,7 +12,12 @@ export default function PromptInput({ onSubmit, loading }: Props) {
 
   const handleSubmit = () => {
     if (!initialPrompt.trim() || !testInput.trim()) return
-    onSubmit(taskType, initialPrompt, testInput)
+    const testInputs = testInput
+      .split(/\n-{3,}\n/)
+      .map(input => input.trim())
+      .filter(Boolean)
+
+    onSubmit(taskType, initialPrompt, testInputs)
   }
 
   return (
@@ -38,10 +43,10 @@ export default function PromptInput({ onSubmit, loading }: Props) {
       </div>
 
       <div className="input-group">
-        <label>Test Input</label>
+        <label>Test Inputs</label>
         <textarea
           rows={4}
-          placeholder="The text or content you want to test the prompt against..."
+          placeholder="Add one or more test cases. Separate multiple cases with a line containing ---"
           value={testInput}
           onChange={e => setTestInput(e.target.value)}
         />

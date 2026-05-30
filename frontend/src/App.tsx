@@ -51,7 +51,7 @@ export default function App() {
   const handleOptimize = async (
     taskType: string,
     initialPrompt: string,
-    testInput: string
+    testInputs: string[]
   ) => {
     setLoading(true)
     setError("")
@@ -74,7 +74,7 @@ export default function App() {
         body: JSON.stringify({
           task_type: taskType,
           initial_prompt: initialPrompt,
-          test_input: testInput,
+          test_inputs: testInputs,
         }),
       })
       if (!res.ok) throw new Error(await res.text())

@@ -78,7 +78,7 @@ def update_optimization_job(job_id: str, **changes) -> None:
 def run_optimization(payload: dict) -> OptimizeResponse:
     result = optimization_graph.invoke({
         "task_type": payload["task_type"],
-        "test_input": payload["test_input"],
+        "test_inputs": payload["test_inputs"],
         "current_prompt": payload["initial_prompt"],
         "current_output": "",
         "current_score": 0.0,
