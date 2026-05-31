@@ -1,5 +1,4 @@
 # Docker Setup
-
 This project runs as three containers:
 
 - `frontend`: React app built by Vite and served by Nginx.
@@ -7,6 +6,7 @@ This project runs as three containers:
 - `db`: Postgres database for optimization sessions and prompt versions.
 
 ## Run Locally
+
 
 Create a local `.env` from the example and set your real Groq key:
 
