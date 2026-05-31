@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     API_AUTH_TOKEN: str = ""
     RATE_LIMIT_REQUESTS: int = 10
     RATE_LIMIT_WINDOW_SECONDS: int = 60
-
+    
     @property
     def cors_origins(self) -> list[str]:
         return [
@@ -20,7 +20,6 @@ class Settings(BaseSettings):
             for origin in self.CORS_ORIGINS.split(",")
             if origin.strip()
         ]
-
     class Config:
         env_file = ".env"
 
