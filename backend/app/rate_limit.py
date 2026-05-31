@@ -40,12 +40,12 @@ def rate_limit(request: Request) -> None:
         while timestamps and timestamps[0] <= cutoff:
             timestamps.popleft()
 
-        if len(timestamps) >= limit:
+        if len(timestamps)>=limit:
             retry_after = max(1, int(window - (now - timestamps[0])))
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Rate limit exceeded. Please try again later.",
-                headers={"Retry-After": str(retry_after)},
+                headers={"Retry-After":str(retry_after)},
             )
 
         timestamps.append(now)
