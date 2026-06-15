@@ -8,7 +8,7 @@ This project runs as three containers:
 ## Run Locally
 
 
-Create a local `.env` from the example and set your real Groq key:
+Create a local `.env` from the example and set your real API key (GROQ):
 
 ```env
 GROQ_API_KEY=your-groq-api-key
