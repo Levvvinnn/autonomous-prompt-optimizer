@@ -25,10 +25,12 @@ app.add_middleware(
 app.include_router(router)
 
 @app.get("/")
-def root():
+def root() -> dict:
+    """Root health endpoint returning service status."""
     return {"status": "running"}
 
 @app.get("/health")
-def health():
+def health() -> dict:
+    """Simple health check endpoint."""
     return {"status": "ok"}
 
