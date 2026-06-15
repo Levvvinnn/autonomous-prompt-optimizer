@@ -1,3 +1,9 @@
+"""API routes for the optimization service.
+
+Includes endpoints to start optimization jobs, stream job events,
+and list saved sessions and prompt versions.
+"""
+
 import asyncio
 import json
 
