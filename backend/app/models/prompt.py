@@ -19,6 +19,9 @@ class OptimizationSession(Base):
         cascade="all, delete-orphan",
     )
 
+    def __repr__(self) -> str:
+        return f"<OptimizationSession id={self.id} task_type={self.task_type!r}>"
+
 class PromptVersion(Base):
     __tablename__ = "prompt_versions"
 
@@ -35,3 +38,6 @@ class PromptVersion(Base):
     conciseness = Column(Float)
     created_at = Column(DateTime, default=datetime.utcnow)
     session = relationship("OptimizationSession", back_populates="versions")
+
+    def __repr__(self) -> str:
+        return f"<PromptVersion id={self.id} session_id={self.session_id} iter={self.iteration}>"
