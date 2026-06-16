@@ -25,7 +25,8 @@ router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
 @router.post("/optimize", response_model=OptimizeJobResponse, dependencies=[Depends(rate_limit)],)
-def optimize(request: OptimizeRequest, background_tasks: BackgroundTasks):
+def optimize(request: OptimizeRequest, background_tasks: BackgroundTasks) -> OptimizeJobResponse:
+    """Start an optimization job and schedule it to run in the background."""
     job = create_optimization_job()
     background_tasks.add_task(
         run_optimization_job,
@@ -35,14 +36,14 @@ def optimize(request: OptimizeRequest, background_tasks: BackgroundTasks):
     return OptimizeJobResponse(job_id=job["job_id"], status=job["status"])
 
 @router.get("/jobs/{job_id}", response_model=JobStatusResponse)
-def get_job(job_id: str):
+def get_job(job_id: str) -> JobStatusResponse:
     job = get_optimization_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Optimization job not found.")
     return job
 
 @router.get("/jobs/{job_id}/events")
-async def stream_job_events(job_id: str):
+async def stream_job_events(job_id: str) -> StreamingResponse:
     if not get_optimization_job(job_id):
         raise HTTPException(status_code=404, detail="Optimization job not found.")
 
