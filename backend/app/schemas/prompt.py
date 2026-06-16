@@ -34,7 +34,7 @@ class OptimizeResponse(BaseModel):
     final_prompt: str
     final_score: float
     total_iterations: int
-    history: list
+    history: list[IterationResponse]
 
 class OptimizeJobResponse(BaseModel):
     job_id: str
