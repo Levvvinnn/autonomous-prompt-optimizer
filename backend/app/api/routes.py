@@ -75,13 +75,15 @@ async def stream_job_events(job_id: str) -> StreamingResponse:
     )
 
 @router.get("/sessions")
-def get_sessions(db: Session = Depends(get_db)):
+def get_sessions(db: Session = Depends(get_db)) -> list[OptimizationSession]:
+    """Return a list of saved optimization sessions ordered by creation time."""
     return db.query(OptimizationSession).order_by(
         OptimizationSession.created_at.desc()
     ).all()
 
 @router.get("/sessions/{session_id}")
-def get_session(session_id: int, db: Session = Depends(get_db)):
+def get_session(session_id: int, db: Session = Depends(get_db)) -> list[PromptVersion]:
+    """Return all prompt versions for a given optimization session."""
     versions = db.query(PromptVersion).filter(
         PromptVersion.session_id == session_id
     ).order_by(PromptVersion.iteration).all()
