@@ -1,6 +1,7 @@
 from datetime import datetime
 from threading import Lock
 from uuid import uuid4
+import logging
 
 from app.database import SessionLocal
 from app.graph.workflow import optimization_graph
@@ -9,6 +10,8 @@ from app.schemas.prompt import OptimizeResponse
 
 jobs: dict[str, dict] = {}
 jobs_lock = Lock()
+
+logger = logging.getLogger(__name__)
 
 
 def validate_history(result: dict) -> list[dict]:
@@ -69,10 +72,12 @@ def get_optimization_job(job_id: str) -> dict | None:
 def update_optimization_job(job_id: str, **changes) -> None:
     with jobs_lock:
         if job_id not in jobs:
+            logger.warning("Tried to update non-existent job %s", job_id)
             return
 
         jobs[job_id].update(changes)
         jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
+        logger.debug("Updated job %s with %s", job_id, changes)
 
 
 def run_optimization(payload: dict) -> OptimizeResponse:
@@ -140,6 +145,7 @@ def run_optimization(payload: dict) -> OptimizeResponse:
 
 
 def run_optimization_job(job_id: str, payload: dict) -> None:
+    logger.info("Starting optimization job %s", job_id)
     update_optimization_job(job_id, status="running", error=None)
 
     try:
@@ -150,7 +156,9 @@ def run_optimization_job(job_id: str, payload: dict) -> None:
             result=result.model_dump(),
             error=None,
         )
+        logger.info("Completed optimization job %s", job_id)
     except Exception as error:
+        logger.exception("Optimization job %s failed", job_id)
         update_optimization_job(
             job_id,
             status="failed",
