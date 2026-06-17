@@ -1,4 +1,7 @@
+"""Pydantic schemas for prompt optimization requests and responses."""
+
 from pydantic import BaseModel, Field, model_validator
+
 
 class OptimizeRequest(BaseModel):
     task_type: str
