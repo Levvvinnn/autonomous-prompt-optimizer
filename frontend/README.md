@@ -73,3 +73,4 @@ export default defineConfig([
 ```
 
 Project note: Use Node.js 18 or newer for local development and builds.
+For development: run `npm install` then `npm run dev` from the `frontend` folder.
