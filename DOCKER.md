@@ -43,3 +43,5 @@ docker compose logs frontend
 ```
 
 Use `docker compose down -v` when you want to delete the local Postgres volume and start with a fresh database.
+
+Troubleshooting: if the backend fails to start, check `docker compose logs backend` for stack traces and ensure the `.env` values are set.
