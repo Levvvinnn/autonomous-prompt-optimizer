@@ -1,3 +1,9 @@
+"""Optimization job management and persistence helpers.
+
+This module provides in-memory job tracking and helpers that invoke the
+optimization workflow and persist results to the database.
+"""
+
 from datetime import datetime
 from threading import Lock
 from uuid import uuid4
@@ -45,7 +51,7 @@ def validate_history(result: dict) -> list[dict]:
     return history
 
 
-def create_optimization_job() -> dict:
+def create_optimization_job() -> dict[str, object]:
     now = datetime.utcnow().isoformat()
     job_id = str(uuid4())
     job = {
@@ -63,13 +69,13 @@ def create_optimization_job() -> dict:
     return job.copy()
 
 
-def get_optimization_job(job_id: str) -> dict | None:
+def get_optimization_job(job_id: str) -> dict[str, object] | None:
     with jobs_lock:
         job = jobs.get(job_id)
         return job.copy() if job else None
 
 
-def update_optimization_job(job_id: str, **changes) -> None:
+def update_optimization_job(job_id: str, **changes: object) -> None:
     with jobs_lock:
         if job_id not in jobs:
             logger.warning("Tried to update non-existent job %s", job_id)
