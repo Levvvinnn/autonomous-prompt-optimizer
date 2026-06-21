@@ -41,6 +41,23 @@ Return exactly this structure:
 All scores between 0.0 and 1.0. Be harsh and specific."""
 
 
+def build_system_prompt(criteria: list[str]) -> str:
+    """Construct a system prompt that instructs the judge to return the given criteria.
+
+    The prompt is intentionally strict: the model must return only a JSON object
+    with a `scores` mapping containing the listed criteria.
+    """
+    scores_obj = ",\n    ".join([f'"{c}": 0.0' for c in criteria])
+    return (
+        "You are an expert prompt evaluator.\n"
+        "Return ONLY a JSON object with the following structure:\n"
+        "{\n  \"scores\": {\n    "
+        + scores_obj
+        + "\n  },\n  \"overall\": 0.0,\n  \"failure_analysis\": \"...\"\n}\n"
+        "All scores between 0.0 and 1.0. Be specific and concise."
+    )
+
+
 class JudgeScores(BaseModel):
     correctness: float = Field(ge=0.0, le=1.0)
     clarity: float = Field(ge=0.0, le=1.0)
