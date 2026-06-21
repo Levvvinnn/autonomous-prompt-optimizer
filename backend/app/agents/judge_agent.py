@@ -6,6 +6,22 @@ from pydantic import BaseModel, Field, ValidationError
 client = Groq(api_key=settings.GROQ_API_KEY)
 MAX_JUDGE_ATTEMPTS = 3
 
+# Mapping of task types to the judge criteria to use for scoring.
+# Add task-specific criteria here as needed.
+DEFAULT_CRITERIA = [
+    "correctness",
+    "clarity",
+    "completeness",
+    "conciseness",
+]
+
+TASK_CRITERIA: dict[str, list[str]] = {
+    "summarization": ["accuracy", "conciseness", "coverage", "readability"],
+    "classification": ["correctness", "confidence", "clarity", "robustness"],
+    "translation": ["accuracy", "fluency", "adequacy", "terminology"],
+    "code_generation": ["correctness", "efficiency", "readability", "robustness"],
+}
+
 JUDGE_SYSTEM_PROMPT = """You are an expert prompt evaluator.
 You will be given a task type, a system prompt, a test input, and the output it produced.
 Score the output and return ONLY a JSON object. No markdown, no backticks, no extra text whatsoever.
