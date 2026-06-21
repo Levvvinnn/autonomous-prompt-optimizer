@@ -136,14 +136,18 @@ def fallback_judgment(error: Exception, expected_criteria: list[str] | None = No
 
 
 def run_judge_agent(task_type: str, system_prompt: str, test_input: str, output: str) -> dict:
+    # Determine which criteria to use for this task type
+    criteria = TASK_CRITERIA.get(task_type, DEFAULT_CRITERIA)
+
     user_message = f"""Task type: {task_type}
 System prompt used: {system_prompt}
 Test input: {test_input}
 Output produced: {output}
 
-Score this output."""
+Score this output according to: {', '.join(criteria)}"""
 
     last_error: Exception | None = None
+    system = build_system_prompt(criteria)
     for attempt in range(MAX_JUDGE_ATTEMPTS):
         retry_hint = ""
         if attempt > 0:
@@ -153,15 +157,15 @@ Score this output."""
             model="llama-3.3-70b-versatile",
             max_tokens=1024,
             messages=[
-                {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+                {"role": "system", "content": system},
                 {"role": "user", "content": user_message + retry_hint}
             ]
         )
 
         raw = message.choices[0].message.content
         try:
-            return parse_judgment(raw)
+            return parse_judgment(raw, expected_criteria=criteria)
         except (json.JSONDecodeError, ValidationError, ValueError) as error:
             last_error = error
 
-    return fallback_judgment(last_error or ValueError("Unknown judge parsing error."))
+    return fallback_judgment(last_error or ValueError("Unknown judge parsing error."), expected_criteria=criteria)
