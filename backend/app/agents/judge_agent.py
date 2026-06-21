@@ -1,3 +1,10 @@
+"""Judge agent: evaluates outputs and returns structured scores.
+
+This agent selects scoring criteria based on the `task_type`. The default
+criteria are `correctness`, `clarity`, `completeness`, and `conciseness`,
+but many task types use specialized criteria defined in `TASK_CRITERIA`.
+"""
+
 from groq import Groq
 from app.config import settings
 import json
