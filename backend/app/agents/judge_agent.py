@@ -122,20 +122,17 @@ def parse_judgment(raw: str, expected_criteria: list[str] | None = None) -> dict
     return payload
 
 
-def fallback_judgment(error: Exception) -> dict:
-    return JudgeResult(
-        scores=JudgeScores(
-            correctness=0.0,
-            clarity=0.0,
-            completeness=0.0,
-            conciseness=0.0,
-        ),
-        overall=0.0,
-        failure_analysis=(
+def fallback_judgment(error: Exception, expected_criteria: list[str] | None = None) -> dict:
+    expected = expected_criteria or DEFAULT_CRITERIA
+    scores = {k: 0.0 for k in expected}
+    return {
+        "scores": scores,
+        "overall": 0.0,
+        "failure_analysis": (
             "The judge model did not return valid scoring JSON after "
             f"{MAX_JUDGE_ATTEMPTS} attempts. Last error: {error}"
         ),
-    ).model_dump()
+    }
 
 
 def run_judge_agent(task_type: str, system_prompt: str, test_input: str, output: str) -> dict:
