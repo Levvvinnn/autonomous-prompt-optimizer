@@ -65,6 +65,15 @@ def build_system_prompt(criteria: list[str]) -> str:
     )
 
 
+def _example_criteria_usage():
+    """Small helper demonstrating how criteria are selected for task types.
+
+    This is non-essential at runtime but useful for quick manual checks.
+    """
+    examples = ["summarization", "classification", "translation", "unknown"]
+    return {t: TASK_CRITERIA.get(t, DEFAULT_CRITERIA) for t in examples}
+
+
 class JudgeScores(BaseModel):
     correctness: float = Field(ge=0.0, le=1.0)
     clarity: float = Field(ge=0.0, le=1.0)
