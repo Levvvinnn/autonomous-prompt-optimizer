@@ -101,9 +101,25 @@ def validate_scores_dict(scores: dict, expected: list[str]) -> None:
             raise ValueError(f"Score for {k} out of range: {v}")
 
 
-def parse_judgment(raw: str) -> dict:
+def parse_judgment(raw: str, expected_criteria: list[str] | None = None) -> dict:
     payload = extract_json_object(raw)
-    return JudgeResult.model_validate(payload).model_dump()
+
+    # Basic structure validation
+    if "scores" not in payload or "overall" not in payload or "failure_analysis" not in payload:
+        raise ValueError("Judge response missing required top-level fields.")
+
+    scores = payload["scores"]
+    expected = expected_criteria or DEFAULT_CRITERIA
+    validate_scores_dict(scores, expected)
+
+    overall = payload["overall"]
+    if not isinstance(overall, (int, float)) or overall < 0.0 or overall > 1.0:
+        raise ValueError("`overall` score missing or out of range.")
+
+    if not isinstance(payload["failure_analysis"], str):
+        raise ValueError("`failure_analysis` must be a string.")
+
+    return payload
 
 
 def fallback_judgment(error: Exception) -> dict:
