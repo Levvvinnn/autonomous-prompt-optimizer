@@ -138,6 +138,7 @@ def fallback_judgment(error: Exception, expected_criteria: list[str] | None = No
 def run_judge_agent(task_type: str, system_prompt: str, test_input: str, output: str) -> dict:
     # Determine which criteria to use for this task type
     criteria = TASK_CRITERIA.get(task_type, DEFAULT_CRITERIA)
+    logger.info("Judge running for task_type=%s using criteria=%s", task_type, criteria)
 
     user_message = f"""Task type: {task_type}
 System prompt used: {system_prompt}
@@ -167,5 +168,6 @@ Score this output according to: {', '.join(criteria)}"""
             return parse_judgment(raw, expected_criteria=criteria)
         except (json.JSONDecodeError, ValidationError, ValueError) as error:
             last_error = error
+            logger.warning("Judge parsing failed on attempt %s: %s", attempt + 1, error)
 
     return fallback_judgment(last_error or ValueError("Unknown judge parsing error."), expected_criteria=criteria)
