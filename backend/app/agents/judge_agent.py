@@ -85,6 +85,22 @@ def extract_json_object(raw: str) -> dict:
     return json.loads(raw[start:end + 1])
 
 
+def validate_scores_dict(scores: dict, expected: list[str]) -> None:
+    """Ensure the `scores` mapping contains the expected keys and values are 0.0-1.0."""
+    if not isinstance(scores, dict):
+        raise ValueError("`scores` must be a JSON object mapping criteria to numbers.")
+
+    missing = [k for k in expected if k not in scores]
+    if missing:
+        raise ValueError(f"Missing expected score keys: {missing}")
+
+    for k, v in scores.items():
+        if not isinstance(v, (int, float)):
+            raise ValueError(f"Score for {k} is not numeric: {v}")
+        if v < 0.0 or v > 1.0:
+            raise ValueError(f"Score for {k} out of range: {v}")
+
+
 def parse_judgment(raw: str) -> dict:
     payload = extract_json_object(raw)
     return JudgeResult.model_validate(payload).model_dump()
