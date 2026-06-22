@@ -23,8 +23,13 @@ DEFAULT_CRITERIA = [
 ]
 
 TASK_CRITERIA: dict[str, list[str]] = {
+    # Matches frontend task types: 'Summarization', 'Code Explanation',
+    # 'Question Answering', 'Classification' (normalized to lowercase underscore).
     "summarization": ["accuracy", "conciseness", "coverage", "readability"],
+    "code_explanation": ["correctness", "clarity", "completeness", "usefulness"],
+    "question_answering": ["correctness", "relevance", "completeness", "conciseness"],
     "classification": ["correctness", "confidence", "clarity", "robustness"],
+    # keep previous useful entries for compatibility
     "translation": ["accuracy", "fluency", "adequacy", "terminology"],
     "code_generation": ["correctness", "efficiency", "readability", "robustness"],
 }
@@ -152,9 +157,10 @@ def fallback_judgment(error: Exception, expected_criteria: list[str] | None = No
 
 
 def run_judge_agent(task_type: str, system_prompt: str, test_input: str, output: str) -> dict:
-    # Determine which criteria to use for this task type
-    criteria = TASK_CRITERIA.get(task_type, DEFAULT_CRITERIA)
-    logger.info("Judge running for task_type=%s using criteria=%s", task_type, criteria)
+    # Normalize the incoming task_type to match keys in TASK_CRITERIA
+    normalized = task_type.lower().replace(" ", "_")
+    criteria = TASK_CRITERIA.get(normalized, DEFAULT_CRITERIA)
+    logger.info("Judge running for task_type=%s (normalized=%s) using criteria=%s", task_type, normalized, criteria)
 
     user_message = f"""Task type: {task_type}
 System prompt used: {system_prompt}
