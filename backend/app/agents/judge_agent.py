@@ -5,6 +5,8 @@ criteria are `correctness`, `clarity`, `completeness`, and `conciseness`,
 but many task types use specialized criteria defined in `TASK_CRITERIA`.
 """
 
+from venv import logger
+
 from groq import Groq
 from app.config import settings
 import json
@@ -13,8 +15,6 @@ from pydantic import BaseModel, Field, ValidationError
 client = Groq(api_key=settings.GROQ_API_KEY)
 MAX_JUDGE_ATTEMPTS = 3
 
-# Mapping of task types to the judge criteria to use for scoring.
-# Add task-specific criteria here as needed.
 DEFAULT_CRITERIA = [
     "correctness",
     "clarity",
