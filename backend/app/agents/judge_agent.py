@@ -23,13 +23,10 @@ DEFAULT_CRITERIA = [
 ]
 
 TASK_CRITERIA: dict[str, list[str]] = {
-    # Matches frontend task types: 'Summarization', 'Code Explanation',
-    # 'Question Answering', 'Classification' (normalized to lowercase underscore).
     "summarization": ["accuracy", "conciseness", "coverage", "readability"],
     "code_explanation": ["correctness", "clarity", "completeness", "usefulness"],
     "question_answering": ["correctness", "relevance", "completeness", "conciseness"],
     "classification": ["correctness", "confidence", "clarity", "robustness"],
-    # keep previous useful entries for compatibility
     "translation": ["accuracy", "fluency", "adequacy", "terminology"],
     "code_generation": ["correctness", "efficiency", "readability", "robustness"],
 }
