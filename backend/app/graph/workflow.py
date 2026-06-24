@@ -50,13 +50,42 @@ def judge_node(state: OptimizationState) -> OptimizationState:
             test_input=test_input,
             output=output,
         ))
-
-    scores = {
-        "correctness": sum(j["scores"]["correctness"] for j in judgments) / len(judgments),
-        "clarity": sum(j["scores"]["clarity"] for j in judgments) / len(judgments),
-        "completeness": sum(j["scores"]["completeness"] for j in judgments) / len(judgments),
-        "conciseness": sum(j["scores"]["conciseness"] for j in judgments) / len(judgments),
+    # Normalize task-specific criteria into the canonical default criteria
+    # so downstream logic can rely on `correctness`, `clarity`, `completeness`, and `conciseness`.
+    SYNONYM_MAP = {
+        "accuracy": "correctness",
+        "coverage": "completeness",
+        "readability": "clarity",
+        "usefulness": "clarity",
+        "relevance": "correctness",
+        "confidence": "correctness",
+        "efficiency": "conciseness",
+        "fluency": "clarity",
+        "adequacy": "completeness",
+        "terminology": "clarity",
+        "robustness": "correctness",
     }
+
+    default_keys = ["correctness", "clarity", "completeness", "conciseness"]
+
+    # Build a list of normalized score dicts where missing default keys are
+    # filled by mapping synonyms or defaulting to 0.0.
+    normalized_scores_list = []
+    for j in judgments:
+        scores = j.get("scores", {})
+        normalized = {k: 0.0 for k in default_keys}
+        for key, val in scores.items():
+            if key in normalized:
+                normalized[key] = val
+            elif key in SYNONYM_MAP:
+                mapped = SYNONYM_MAP[key]
+                normalized[mapped] = val
+        normalized_scores_list.append(normalized)
+
+    # Average the normalized scores across test cases
+    scores = {}
+    for k in default_keys:
+        scores[k] = sum(ns[k] for ns in normalized_scores_list) / len(normalized_scores_list)
     overall = sum(j["overall"] for j in judgments) / len(judgments)
     failure_analysis = "\n\n".join(
         f"Test case #{index}: {judgment['failure_analysis']}"

@@ -3,9 +3,12 @@
 This agent selects scoring criteria based on the `task_type`. The default
 criteria are `correctness`, `clarity`, `completeness`, and `conciseness`,
 but many task types use specialized criteria defined in `TASK_CRITERIA`.
+
+This module configures a logger via the standard `logging` module.
 """
 
-from venv import logger
+import logging
+logger = logging.getLogger(__name__)
 
 from groq import Groq
 from app.config import settings
