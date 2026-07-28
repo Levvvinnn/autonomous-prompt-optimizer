@@ -53,6 +53,16 @@ function buildApiHeaders() {
   return headers
 }
 
+function parseSseData(event: string) {
+  const dataLine = event
+    .split("\n")
+    .find(line => line.startsWith("data: "))
+
+  if (!dataLine) return null
+
+  return JSON.parse(dataLine.slice(6)) as JobStatusResponse
+}
+
 export default function App() {
   const [result, setResult] = useState<OptimizeResponse | null>(null)
   const [loading, setLoading] = useState(false)
@@ -102,13 +112,9 @@ export default function App() {
         buffer = events.pop() ?? ""
 
         for (const event of events) {
-          const dataLine = event
-            .split("\n")
-            .find(line => line.startsWith("data: "))
+          const jobStatus = parseSseData(event)
+          if (!jobStatus) continue
 
-          if (!dataLine) continue
-
-          const jobStatus: JobStatusResponse = JSON.parse(dataLine.slice(6))
           if (jobStatus.status === "completed" && jobStatus.result) {
             setResult(jobStatus.result)
             setStatusMessage("")
