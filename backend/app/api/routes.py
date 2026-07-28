@@ -6,6 +6,7 @@ and list saved sessions and prompt versions.
 
 import asyncio
 import json
+from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -51,7 +52,7 @@ async def stream_job_events(job_id: str) -> StreamingResponse:
     if not get_optimization_job(job_id):
         raise HTTPException(status_code=404, detail="Optimization job not found.")
 
-    async def event_stream():
+    async def event_stream() -> AsyncIterator[str]:
         last_updated_at = None
 
         while True:
