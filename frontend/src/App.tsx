@@ -38,6 +38,9 @@ interface JobStatusResponse {
   error: string | null
 }
 
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
+const API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN
+
 export default function App() {
   const [result, setResult] = useState<OptimizeResponse | null>(null)
   const [loading, setLoading] = useState(false)
@@ -54,8 +57,6 @@ export default function App() {
     setResult(null)
     setStatusMessage("Starting optimization job...")
     try {
-      const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
-      const API_AUTH_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       }
