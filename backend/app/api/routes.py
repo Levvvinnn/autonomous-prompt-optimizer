@@ -24,7 +24,11 @@ from app.services.optimization import (
 router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
-@router.post("/optimize", response_model=OptimizeJobResponse, dependencies=[Depends(rate_limit)],)
+@router.post(
+    "/optimize",
+    response_model=OptimizeJobResponse,
+    dependencies=[Depends(rate_limit)],
+)
 def optimize(request: OptimizeRequest, background_tasks: BackgroundTasks) -> OptimizeJobResponse:
     """Start an optimization job and schedule it to run in the background."""
     job = create_optimization_job()
